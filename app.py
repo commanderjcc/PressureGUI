@@ -88,8 +88,8 @@ app.layout = dbc.Container([
 
 @app.callback(
     Output('memory-output', 'data'),
-    Output('indicator-graphic', 'figure'),
-    Output('update-table', 'children'),
+    # Output('indicator-graphic', 'figure'),
+    # Output('update-table', 'children'),
     Input('query', 'n_clicks'),
     State('site_id', 'value'))
 def main_query(n_clicks, site_id):
@@ -115,14 +115,14 @@ def main_query(n_clicks, site_id):
                         color=pressure_data.batch_id)
 
     data = table.to_json()
-    return data, figure, html.Div(
-        [
-            dash_table.DataTable(
-                data=table.to_dict("rows"),
-                columns=[{"id": x, "name": x} for x in table.columns],
-            )
-        ]
-    )
+    return data#, figure, html.Div(
+    #     [
+    #         dash_table.DataTable(
+    #             data=table.to_dict("rows"),
+    #             columns=[{"id": x, "name": x} for x in table.columns],
+    #         )
+    #     ]
+    # )
 
 
 @app.callback(
@@ -158,11 +158,49 @@ def update_table_style(selectedData):
 
     return selected_styles
 
+# deletes a point, updates the JSON and triggers refresh of graph's data.
+@app.callback(
+    Output("memory-output", "data"),
+    Input("delete", "n_clicks"),
+    State("indicator-graphic", "selectedData"),
+    State("memory-output", 'data'))
+def deletebutton(n_clicks, selection, data):
+    df = pd.read_json(data)
+    matched_points = []
+    if selection is not None:
+        datetimes_selected = []
+        pressures_selected = []
+        for point in selection['points']:
+            datetimes_selected.append(point['x'])
+            pressures_selected.append(point['y'])
+        datetimes_series = df['datetime'].isin(datetimes_selected)
+        matched_datetimes = df[datetimes_series]
+        pressures_series = matched_datetimes['pressure_hobo'].isin(pressures_selected);
+        matched_points = matched_datetimes[pressures_series]
 
+    df.drop(matched_points.index, axis=0, inplace=True)
 
+    return df.to_json()
+
+@app.callback(
+    Input("memory-output", "data"),
+    Output('indicator-graphic', 'figure'),
+    Output('update-table', 'children'))
+def updateOnNewData(data):
+    df = pd.read_json(data)
+    figure = px.scatter(df, x=df.datetime, y=df.pressure_hobo,
+                        color=df.batch_id)
+
+    return figure, html.Div(
+        [
+            dash_table.DataTable(
+                data=df.to_dict('rows'),
+                columns=[{"id": x, "name": x} for x in df.columns],
+            )
+        ]
+    )
 
 if __name__ == '__main__':
     app.run_server(debug=True)
 
-    # Input("indicator-graphic", "selectedData")
-    # State("memory-output", 'data')
+
