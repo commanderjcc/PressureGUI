@@ -13,7 +13,7 @@ header = [
 
 localstorage = [
     dcc.Store(id='memory-output'),
-    dcc.Store(id='discharge'),
+    #dcc.Store(id='discharge'),
     # dcc.Store(id='selection-stats'),
     dcc.Store(id='history'),
     dcc.Store(id='updated-table'),
