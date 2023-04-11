@@ -322,15 +322,18 @@ def undo(n_clicks, history, data):
 
 @app.callback(
     Output('download-csv', 'data'),
+    Output('changes-csv', 'data'),
     Input('exportDF', 'n_clicks'),
     State('memory-output', 'data'),
+    State('history', 'data'),
     State('export_filename', 'value'),
     prevent_initial_call=True
 )
-def export(n_clicks, data, filename):
+def export(n_clicks, data, changes, filename):
     if data is not None:
         pressure_table = pd.read_json(data)
-        return dcc.send_data_frame(pressure_table.to_csv, filename)
+        changestr = json.dumps(changes)
+        return dcc.send_data_frame(pressure_table.to_csv, filename), dict(content=changestr, filename="changes.json")
 
 
 if __name__ == '__main__':
