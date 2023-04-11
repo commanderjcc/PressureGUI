@@ -7,8 +7,8 @@ from dash_extensions.enrich import Output, DashProxy, Input, MultiplexerTransfor
 import dash_bootstrap_components as dbc
 
 import plotly.express as px
-from plotly.subplots import make_subplots
-import plotly.graph_objects as go
+# from plotly.subplots import make_subplots
+# import plotly.graph_objects as go
 
 import json
 import numpy as np
@@ -53,7 +53,7 @@ def display_selected(selection):
 
 @app.callback(
     Output('memory-output', 'data'),
-    Output('discharge', 'data'),
+    #Output('discharge', 'data'),
     Output('history', 'data'),
     Input('query', 'n_clicks'),
     State('site_id', 'value'))
@@ -75,16 +75,16 @@ def main_query(n_clicks, site_id):
     table.dropna(subset=['pressure_hobo'], inplace=True)
     table.drop('index', axis=1, inplace=True)
 
-    discharge_data = get_discharge(cursor, site_id)
-    discharge_df = pd.DataFrame(discharge_data)
-    discharge_df['discharge_measured'].replace('', np.nan, inplace=True)
-    discharge_df.dropna(subset=['discharge_measured'], inplace=True)
-    discharge_df.drop('index', axis=1, inplace=True)
+    # discharge_data = get_discharge(cursor, site_id)
+    # discharge_df = pd.DataFrame(discharge_data)
+    # discharge_df['discharge_measured'].replace('', np.nan, inplace=True)
+    # discharge_df.dropna(subset=['discharge_measured'], inplace=True)
+    # discharge_df.drop('index', axis=1, inplace=True)
 
     data = table.to_json()
-    discharge = discharge_df.to_json()
+    #discharge = discharge_df.to_json()
     change_log = log_changes([], "init", pd.DataFrame(), f"Initialized with site_id: {site_id}")
-    return data, discharge, change_log
+    return data, change_log
 
 
 @app.callback(
@@ -238,36 +238,37 @@ def delete_button(n_clicks, selection, data, history):
 
 @app.callback(
     Input('memory-output', 'data'),
-    State('discharge', 'data'),
+    #State('discharge', 'data'),
     Output('indicator-graphic', 'figure'),
     Output('update-table', 'children'))
-def update_on_new_data(data, discharge):
+def update_on_new_data(data):
     # Read in dataframe from JSON
     df = pd.read_json(data)
-    discharge = pd.read_json(discharge)
+    #discharge = pd.read_json(discharge)
     # Convert batch_id to strings
     df['batch_id'] = df['batch_id'].apply(lambda x: str(x))
-    discharge['batch_id'] = df['batch_id'].apply(lambda x: str(x))
+    #discharge['batch_id'] = df['batch_id'].apply(lambda x: str(x))
 
     # Create a scatterplot figure from the dataframe
     # figure = px.scatter(df, x=df.datetime, y=df.pressure_hobo,
     #                     color=df.batch_id)
 
     # Create figure with secondary y-axis
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    # fig = make_subplots(specs=[[{"secondary_y": True}]])
+    #
+    # # Add traces
+    # fig.add_trace(
+    #     go.Scatter(x=df.datetime, y=df.pressure_hobo,  # replace with your own data source
+    #                name="pressure", mode='markers'),
+    #     secondary_y=False
+    # )
+    #
+    # fig.add_trace(
+    #     go.Scatter(x=discharge.datetime, y=discharge.discharge_measured, name="discharge", mode="lines+markers"),
+    #     secondary_y=True,
+    # )
 
-    # Add traces
-    fig.add_trace(
-        go.Scatter(x=df.datetime, y=df.pressure_hobo,  # replace with your own data source
-                   name="pressure", mode='markers'),
-        secondary_y=False
-    )
-
-    fig.add_trace(
-        go.Scatter(x=discharge.datetime, y=discharge.discharge_measured, name="discharge", mode="lines+markers"),
-        secondary_y=True,
-    )
-
+    fig = px.scatter(df, x=df.datetime, y=df.pressure_hobo, color=df.batch_id)
 
     # create a DashTable from the data
     table = html.Div(
