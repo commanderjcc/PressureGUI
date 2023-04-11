@@ -334,7 +334,7 @@ def export(n_clicks, data, changes, filename):
     if data is not None:
         pressure_table = pd.read_json(data)
         changestr = json.dumps(changes)
-        return dcc.send_data_frame(pressure_table.to_csv, filename), dict(content=changestr, filename="changes.json")
+        return dcc.send_data_frame(pressure_table.to_csv, f"{filename}.csv"), dict(content=changestr, filename=f"{filename}.json")
 
 
 if __name__ == '__main__':
