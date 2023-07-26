@@ -1,17 +1,21 @@
 # Run this app with `python app.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
-import pandas as pd
+
 from dash import Dash, dcc, html, dash_table
 from dash.dependencies import Output, Input, State
 from dash_extensions.enrich import Output, DashProxy, Input, MultiplexerTransform
 import dash_bootstrap_components as dbc
+
 import plotly.express as px
+# from plotly.subplots import make_subplots
+# import plotly.graph_objects as go
+
 import json
 import numpy as np
+import pandas as pd
 from pathlib import Path
 import statistics as stat
-from plotly.subplots import make_subplots
-import plotly.graph_objects as go
+
 import sqlite3
 from run_query import get_pressure, get_discharge
 from layout import layout
@@ -49,12 +53,13 @@ def display_selected(selection):
 
 @app.callback(
     Output('memory-output', 'data'),
+    #Output('discharge', 'data'),
     Output('history', 'data'),
     Input('query', 'n_clicks'),
     State('site_id', 'value'))
 def main_query(n_clicks, site_id):
     # Opening the database file
-    print(f"button clicked {n_clicks} times")
+    # print(f"button clicked {n_clicks} times")
     if db_name.endswith(".db"):
         conn = sqlite3.connect(db_name)
         cursor = conn.cursor()  # This object will allow queries to be run on the database
@@ -64,22 +69,22 @@ def main_query(n_clicks, site_id):
     # SQL query on the database -- Depending on your database, this will need to be formatted
     # to fit your system requirements
     pressure_data = get_pressure(cursor, site_id)
-    # discharge_data = get_discharge(cursor, site_id)
+
     table = pd.DataFrame(pressure_data)
     table['pressure_hobo'].replace('', np.nan, inplace=True)
     table.dropna(subset=['pressure_hobo'], inplace=True)
     table.drop('index', axis=1, inplace=True)
 
+    # discharge_data = get_discharge(cursor, site_id)
+    # discharge_df = pd.DataFrame(discharge_data)
+    # discharge_df['discharge_measured'].replace('', np.nan, inplace=True)
+    # discharge_df.dropna(subset=['discharge_measured'], inplace=True)
+    # discharge_df.drop('index', axis=1, inplace=True)
+
     data = table.to_json()
+    #discharge = discharge_df.to_json()
     change_log = log_changes([], "init", pd.DataFrame(), f"Initialized with site_id: {site_id}")
     return data, change_log
-
-
-# @app.callback(
-#     Output('selected', 'children'),
-#     Input('indicator-graphic', 'clickData'))
-# def display_selected(clickData):
-#     return json.dumps(clickData, indent=1)
 
 
 @app.callback(
@@ -233,18 +238,37 @@ def delete_button(n_clicks, selection, data, history):
 
 @app.callback(
     Input('memory-output', 'data'),
+    #State('discharge', 'data'),
     Output('indicator-graphic', 'figure'),
     Output('update-table', 'children'))
 def update_on_new_data(data):
     # Read in dataframe from JSON
     df = pd.read_json(data)
-
+    #discharge = pd.read_json(discharge)
     # Convert batch_id to strings
     df['batch_id'] = df['batch_id'].apply(lambda x: str(x))
+    #discharge['batch_id'] = df['batch_id'].apply(lambda x: str(x))
 
     # Create a scatterplot figure from the dataframe
-    figure = px.scatter(df, x=df.datetime, y=df.pressure_hobo,
-                        color=df.batch_id)
+    # figure = px.scatter(df, x=df.datetime, y=df.pressure_hobo,
+    #                     color=df.batch_id)
+
+    # Create figure with secondary y-axis
+    # fig = make_subplots(specs=[[{"secondary_y": True}]])
+    #
+    # # Add traces
+    # fig.add_trace(
+    #     go.Scatter(x=df.datetime, y=df.pressure_hobo,  # replace with your own data source
+    #                name="pressure", mode='markers'),
+    #     secondary_y=False
+    # )
+    #
+    # fig.add_trace(
+    #     go.Scatter(x=discharge.datetime, y=discharge.discharge_measured, name="discharge", mode="lines+markers"),
+    #     secondary_y=True,
+    # )
+
+    fig = px.scatter(df, x=df.datetime, y=df.pressure_hobo, color=df.batch_id)
 
     # create a DashTable from the data
     table = html.Div(
@@ -257,7 +281,7 @@ def update_on_new_data(data):
     )
 
     # return objects into the graph and table
-    return figure, table
+    return fig, table
 
 @app.callback(
     Input('history', 'data'),
@@ -299,15 +323,18 @@ def undo(n_clicks, history, data):
 
 @app.callback(
     Output('download-csv', 'data'),
+    Output('changes-csv', 'data'),
     Input('exportDF', 'n_clicks'),
     State('memory-output', 'data'),
+    State('history', 'data'),
     State('export_filename', 'value'),
     prevent_initial_call=True
 )
-def export(n_clicks, data, filename):
+def export(n_clicks, data, changes, filename):
     if data is not None:
         pressure_table = pd.read_json(data)
-        return dcc.send_data_frame(pressure_table.to_csv, filename)
+        changestr = json.dumps(changes)
+        return dcc.send_data_frame(pressure_table.to_csv, f"{filename}.csv"), dict(content=changestr, filename=f"{filename}.json")
 
 
 if __name__ == '__main__':

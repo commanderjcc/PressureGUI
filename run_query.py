@@ -48,11 +48,23 @@ def get_pressure(cursor, site_id):
 
 
 def get_discharge(cursor, site_id):
+    indexList = getIndexList()
+    dateList = getDateList(indexList)
+
     sql_query = "SELECT *, MAX(q_batch_id) FROM q_reads INNER JOIN q_batches USING (q_batch_id) where site_id = ? group by date_sampled, time_sampled order by (date_sampled);"
     site_tuple = (site_id,)
     cursor.execute(sql_query, site_tuple)
     result = cursor.fetchall()
-    discharge_data = {"batch_id": [], "datetime": [], "discharge_measured": [], "index": []}
+    discharge_data = {
+        'index': indexList,
+        'datetime': dateList
+    }
+    discharge_dict = {
+        "batch_id": [],
+        "datetime": [],
+        "discharge_measured": [],
+        "index": []
+    }
 
     for item in result:
         batch_id = item[0]
@@ -66,8 +78,17 @@ def get_discharge(cursor, site_id):
 
         datetime = day + "/" + month + "/" + year + " " + hour + ":" + minute + ":" + second
 
-        discharge_data["batch_id"].append(batch_id)
-        discharge_data["datetime"].append(datetime)
-        discharge_data["discharge_measured"].append(discharge)
+        index = datetimeToIndex(year, month, day, hour, minute, second)
+        index = round(index / dayToIndexRatio) * dayToIndexRatio
+
+        discharge_dict["batch_id"].append(batch_id)
+        discharge_dict["datetime"].append(datetime)
+        discharge_dict["discharge_measured"].append(discharge)
+        discharge_dict["index"].append(index)
+
+
+    discharge_data = pd.DataFrame(discharge_dict)
+    discharge_data['datetime'] = pd.to_datetime(discharge_data.datetime, format="%d/%m/%y %H:%M:%S")
+    discharge_data = discharge_data.sort_values(by=['datetime'])
 
     return discharge_data

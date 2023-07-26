@@ -2,6 +2,10 @@ startYear = 18
 dayToIndexRatio = 1 / (4 * 24)
 indexToDayRatio = 4 * 24
 
+
+# FIXME!!! THIS CODE IS SUUUUPER inefficient somehow. It makes the entire program almost unusable
+
+
 def getDaysInYear(year):
     if year % 4 == 0:
         daysInYear = 366

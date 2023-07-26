@@ -13,13 +13,15 @@ header = [
 
 localstorage = [
     dcc.Store(id='memory-output'),
-    dcc.Store(id='selection-stats'),
+    #dcc.Store(id='discharge'),
+    # dcc.Store(id='selection-stats'),
     dcc.Store(id='history'),
     dcc.Store(id='updated-table'),
 ]
 
 download = [
     dcc.Download(id="download-csv"),
+    dcc.Download(id="changes-csv")
 ]
 
 shift_tab = [
@@ -48,7 +50,7 @@ compress_tab = [
 export_tab = [
     html.P("Export as CSV"),
     dcc.Input(id="export_filename", type="text", placeholder="export.csv", style={'width': '100%'}),
-    dbc.Button("Export", id="exportDF", color="primary",
+    dbc.Button("Export Data", id="exportDF", color="primary",
                style={'display': 'inline-block', "margin": "5px"},
                n_clicks=0),
 ]
