@@ -1,6 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import Dash, dcc, html, dash_table
 
+# Header contains the title and subtitle
 header = [
     dbc.Row([
         dbc.Col(
@@ -11,19 +12,24 @@ header = [
     ]),
 ]
 
+# Tabs containing the tabs for the main page
+
+# Local storage is used to store data in the browser
 localstorage = [
     dcc.Store(id='memory-output'),
-    #dcc.Store(id='discharge'),
+    # dcc.Store(id='discharge'),
     # dcc.Store(id='selection-stats'),
     dcc.Store(id='history'),
     dcc.Store(id='updated-table'),
 ]
 
+# Download is used to hold the dcc.Download components
 download = [
     dcc.Download(id="download-csv"),
     dcc.Download(id="changes-csv")
 ]
 
+# shift_tab is used to hold the shift controls
 shift_tab = [
     html.P("Vertical Shift of:"),
     dcc.Input(id="shift_amount", type="number", placeholder="", style={'width': '100%'}),
@@ -32,6 +38,7 @@ shift_tab = [
                n_clicks=0),
 ]
 
+# delete_tab is used to hold the delete button
 delete_tab = [
     html.P("Delete Box or Lasso Selection"),
     dbc.Button("Delete", id="delete", color="primary",
@@ -39,6 +46,7 @@ delete_tab = [
                n_clicks=0),
 ]
 
+# compress_tab is used to hold the compression controls
 compress_tab = [
     html.P("Compression factor:"),
     dcc.Input(id="compression_factor", type="number", placeholder="", style={'width': '100%'}),
@@ -47,6 +55,7 @@ compress_tab = [
                n_clicks=0),
 ]
 
+# export_tab is used to hold the export controls
 export_tab = [
     html.P("Export as CSV"),
     dcc.Input(id="export_filename", type="text", placeholder="export.csv", style={'width': '100%'}),
@@ -55,6 +64,7 @@ export_tab = [
                n_clicks=0),
 ]
 
+# history_tab is used to hold the undo button
 history_tab = [
     dbc.Button("Undo", id="undoChange", color="primary",
                style={'display': 'inline-block', "margin": "5px"},
@@ -62,16 +72,17 @@ history_tab = [
     dbc.Accordion([], id="history_log", start_collapsed=True),
 ]
 
+# editor is used to hold the tabs above for the editor
 editor = [
     # dbc.Card([
     #     dbc.CardHeader([
-            dbc.Accordion([
-                dbc.AccordionItem(shift_tab, title="Shift︎"),
-                dbc.AccordionItem(compress_tab, title="Compress"),
-                dbc.AccordionItem(delete_tab, title="Delete"),
-                dbc.AccordionItem(export_tab, title="Export"),
-                dbc.AccordionItem(history_tab, title="History")
-            ], start_collapsed=True),
+    dbc.Accordion([
+        dbc.AccordionItem(shift_tab, title="Shift︎"),
+        dbc.AccordionItem(compress_tab, title="Compress"),
+        dbc.AccordionItem(delete_tab, title="Delete"),
+        dbc.AccordionItem(export_tab, title="Export"),
+        dbc.AccordionItem(history_tab, title="History")
+    ], start_collapsed=True),
     #     ]),
     #
     #     dbc.CardBody(id="editor_card_body")
@@ -79,13 +90,13 @@ editor = [
 ]
 
 layout = dbc.Container([
-    *localstorage,
+    *localstorage,  # *localstorage expands the list into the container
     *download,
     *header,
     html.Hr(),
     dbc.Row([
         dbc.Col([
-            dbc.Card([
+            dbc.Card([  # This is the card that holds the site query
                 html.H5("Run Site Query"),
                 "Site ID:",
                 dcc.Dropdown(
@@ -100,29 +111,30 @@ layout = dbc.Container([
                            n_clicks=0)
             ], body="true", color="light"),
             html.Hr(),
-            *editor,
+            *editor,  # *editor expands the editor components into the container
         ], width=3),
         dbc.Col(
             dbc.Card(
-                dcc.Graph(id='indicator-graphic'), body='True', color="light"), width=9)
+                dcc.Graph(id='indicator-graphic'), body='True', color="light"), width=9)  # This is the graph
     ]),
     html.Hr(),
+
     dbc.Row([
         dbc.Col([
-            dbc.Card([
+            dbc.Card([  # This is the card that holds the mean and variance information
                 dcc.Markdown("""
                     **Click Data**
 
                     Click on a point from the graph to display more about that observation.
                 """),
                 html.P("Selection Mean:"),
-                html.P(id = "mean"),
+                html.P(id="mean"),
                 html.P("Selection Variance:"),
-                html.P(id = "variance"),
+                html.P(id="variance"),
             ], body="true", color="light")
         ], width=3),
         dbc.Col([
-            dbc.Card([html.Div(id="update-table"),
+            dbc.Card([html.Div(id="update-table"),  # This is the card that holds the table
                       ], body="true", color="light")
         ], width=9)
     ])

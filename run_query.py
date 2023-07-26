@@ -3,6 +3,12 @@ from index import datetimeToIndex, dayToIndexRatio
 from datetime_modifications import correct_datetime, getIndexList, getDateList, joinDict
 
 def get_pressure(cursor, site_id):
+    """
+        Gets the pressure data from the database and returns it as a dataframe.
+    :param cursor:  cursor object from the database
+    :param site_id: three char site id that matches the database
+    :return: dataframe of pressure data
+    """
     indexList = getIndexList()
     dateList = getDateList(indexList)
 
@@ -48,6 +54,15 @@ def get_pressure(cursor, site_id):
 
 
 def get_discharge(cursor, site_id):
+    """
+        Gets the discharge data from the database and returns it as a dataframe.
+    :param cursor:
+    :param site_id: three char site id that matches the database
+    :return: a dataframe of discharge data
+    """
+
+    # INFO: I just copied the get_pressure function and changed the sql query
+
     indexList = getIndexList()
     dateList = getDateList(indexList)
 

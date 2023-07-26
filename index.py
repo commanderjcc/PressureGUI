@@ -7,32 +7,43 @@ indexToDayRatio = 4 * 24
 
 
 def getDaysInYear(year):
+    """
+        Returns the number of days in a year
+    :param year: int
+    :return: int (number of days in the year) (365 or 366)
+    """
     if year % 4 == 0:
-        daysInYear = 366
+        daysInYear = 366  # if it is a leap year
     else:
         daysInYear = 365
     return daysInYear
 
 
 def dateToIndex(year, month, day, startYear):
+    """
+        Returns the index of a date since October 1, startYear
+    :param year:
+    :param month:
+    :param day:
+    :param startYear:
+    :return:
+    """
     # calculates the number of days since October 1, start year (2018)
-    # will not work properly for any dates prior to that
+    # FIXME will not work properly for any dates prior to that
 
-    # year, month, day = date.split("-")
     year = int(year)
     month = int(month)
     day = int(day)
 
-    index = -1
+    index = -1 # the index of the date
 
     if year % 4 == 0:  # if it is a leap year
         monthToDays = {1: 31, 2: 29, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
     else:
         monthToDays = {1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
-    # print(index)
+
     monthVal = int(month)
     if startYear == year:
-        # print(index)
 
         # then just calculate the day it is in the year and subract 304
         for preMonth in range(10, monthVal):  # add the previous months
@@ -80,6 +91,12 @@ def dateToIndex(year, month, day, startYear):
 
 
 def indexToDatetime(index, startYear):
+    """
+        Returns the datetime for an index
+    :param index:  int
+    :param startYear:  int
+    :return: year, month, day, hour, minute, second
+    """
     # index must represent days since Oct 1, startYear
 
     # put everything back into the framework of normal years (Jan 1, startYear)
